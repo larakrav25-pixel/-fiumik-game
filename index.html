@@ -1,380 +1,417 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Рейс Фьюмика</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Приключения кота Фьюмика</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Telegram WebApp API -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-    <style>
-        :root {
-            /* Цвета под Telegram-тему */
-            --bg: var(--tg-theme-bg-color, #b3e5fc);
-            --text: var(--tg-theme-text-color, #000000);
-            --card: #ffffff;
-            --accent: #0288d1;
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        #game-box {
-            width: 95%;
-            max-width: 450px;
-            background: var(--card);
-            border-radius: 24px;
-            padding: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            border: 3px solid var(--accent);
-        }
-
-        .header h2 {
-            margin: 0;
-            color: #01579b;
-            font-size: 20px;
-        }
-
-        .header p {
-            margin: 4px 0 0;
-            color: #546e7a;
-            font-size: 14px;
-        }
-
-        .runway {
-            width: 100%;
-            height: 130px;
-            background: #90a4ae;
-            border-radius: 18px;
-            position: relative;
-            overflow: hidden;
-            border-bottom: 6px dashed white;
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            padding: 8px 10px 10px;
-            box-sizing: border-box;
-        }
-
-        .cloud {
-            position: absolute;
-            color: white;
-            font-size: 26px;
-            animation: fly 12s linear infinite;
-            opacity: 0.6;
-        }
-
-        @keyframes fly {
-            from { left: -60px; }
-            to   { left: 480px; }
-        }
-
-        #hero {
-            font-size: 40px;
-            position: relative;
-            transition: 0.5s ease-out;
-            z-index: 5;
-        }
-
-        #target {
-            font-size: 40px;
-        }
-
-        .fuel-container {
-            background: #e0e0e0;
-            height: 18px;
-            border-radius: 10px;
-            margin: 12px 0;
-            overflow: hidden;
-            border: 2px solid #546e7a;
-        }
-
-        #fuel-level {
-            height: 100%;
-            width: 100%;
-            background: linear-gradient(90deg, #ff8f00, #ffca28);
-            transition: 0.3s;
-        }
-
-        .math-card {
-            background: #f1f8e9;
-            border: 2px solid #8bc34a;
-            border-radius: 18px;
-            padding: 14px;
-            margin: 14px 0;
-        }
-
-        #question {
-            font-size: 26px;
-            color: #2e7d32;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        #phrase {
-            font-size: 14px;
-            color: #455a64;
-            margin-top: 6px;
-            text-align: center;
-            min-height: 18px;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 8px;
-        }
-
-        button.answer {
-            background: #03a9f4;
-            color: white;
-            border: none;
-            padding: 12px;
-            font-size: 18px;
-            border-radius: 14px;
-            cursor: pointer;
-            box-shadow: 0 3px #0288d1;
-            transition: 0.1s;
-        }
-
-        button.answer:hover {
-            background: #29b6f6;
-        }
-
-        button.answer:active {
-            box-shadow: 0 0;
-            transform: translateY(3px);
-        }
-
-        .bottom-bar {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-            font-size: 13px;
-            color: #607d8b;
-        }
-
-        .top-buttons {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 6px;
-            gap: 6px;
-        }
-
-        .small-btn {
-            font-size: 12px;
-            padding: 4px 8px;
-            border-radius: 10px;
-            border: none;
-            cursor: pointer;
-            background: #eceff1;
-            color: #455a64;
-        }
-    </style>
-</head>
-<body>
-<div id="game-box">
-    <div class="top-buttons">
-        <button class="small-btn" onclick="restartGame()">🔁 Сначала</button>
-        <button class="small-btn" onclick="closeApp()">✖ Закрыть</button>
-    </div>
-
-    <div class="header">
-        <h2>✈️ Рейс Фьюмика</h2>
-        <p>Помоги Фьюмику, Фантику и Пышкину долететь до финиша!</p>
-    </div>
-
-    <div class="runway">
-        <div class="cloud" style="top:10%; animation-duration: 15s;">☁️</div>
-        <div class="cloud" style="top:35%; animation-duration: 11s;">☁️</div>
-
-        <!-- Здесь можно заменить на картинку Фьюмика -->
-        <div id="hero">🐈‍⬛</div>
-        <div id="target">🏁</div>
-    </div>
-
-    <div class="fuel-container">
-        <div id="fuel-level"></div>
-    </div>
-
-    <div class="math-card">
-        <div id="question">Загрузка...</div>
-        <div id="phrase"></div>
-    </div>
-
-    <div class="grid" id="answers">
-        <button class="answer"></button>
-        <button class="answer"></button>
-        <button class="answer"></button>
-        <button class="answer"></button>
-    </div>
-
-    <div class="bottom-bar">
-        <div id="step-info">Задача: 1 / 5</div>
-        <div id="fuel-info">Топливо: 100%</div>
-    </div>
-</div>
-
-<script>
-    const tg = window.Telegram ? window.Telegram.WebApp : null;
-    if (tg) {
-        tg.expand();
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(#e3f2fd, #bbdefb);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
     }
 
-    let step = 0;
-    const goal = 5;          // короткая игра: 5 задач
-    let fuel = 100;
-    let correctValue = null;
+    .game-container {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      max-width: 480px;
+      width: 100%;
+      padding: 16px 16px 20px;
+      box-sizing: border-box;
+      position: relative;
+    }
 
-    const hero = document.getElementById('hero');
-    const fuelBar = document.getElementById('fuel-level');
-    const questionEl = document.getElementById('question');
-    const phraseEl = document.getElementById('phrase');
-    const stepInfo = document.getElementById('step-info');
-    const fuelInfo = document.getElementById('fuel-info');
-    const buttons = document.querySelectorAll('#answers button');
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: #455a64;
+    }
+
+    .track {
+      position: relative;
+      height: 80px;
+      background: #e0f7fa;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      border: 2px solid #b2ebf2;
+    }
+
+    #hero {
+      position: absolute;
+      left: 8px;
+      bottom: 4px;
+      transition: left 0.4s ease-out;
+    }
+
+    /* 🔥 Анимация подпрыгивания */
+    @keyframes jump {
+      0%   { transform: translateY(0); }
+      30%  { transform: translateY(-18px); }
+      60%  { transform: translateY(0); }
+      100% { transform: translateY(0); }
+    }
+
+    .jumping {
+      animation: jump 0.5s ease-out;
+    }
+
+    .finish {
+      position: absolute;
+      right: 8px;
+      top: 10px;
+      bottom: 10px;
+      width: 24px;
+      background-image: linear-gradient(45deg, #000 25%, #fff 25%, #fff 50%, #000 50%, #000 75%, #fff 75%, #fff 100%);
+      background-size: 12px 12px;
+      border-radius: 6px;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: #e0e0e0;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .progress-inner {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #42a5f5, #66bb6a);
+      transition: width 0.3s ease-out;
+    }
+
+    .question {
+      background: #e8f5e9;
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: 600;
+      color: #1b5e20;
+      margin-bottom: 12px;
+    }
+
+    .answers {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .answer-btn {
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      background: #e3f2fd;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.1s, background 0.2s;
+    }
+
+    .answer-btn.correct {
+      background: #c8e6c9;
+    }
+
+    .answer-btn.wrong {
+      background: #ffcdd2;
+    }
+
+    .message {
+      min-height: 40px;
+      font-size: 14px;
+      color: #37474f;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .bottom-bar {
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #607d8b;
+    }
+
+    .restart-btn {
+      border: none;
+      background: #42a5f5;
+      color: #fff;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    /* 🌤️ Голубой экран перехода */
+    .level-screen {
+      position: absolute;
+      inset: 0;
+      background: #cfe9ff;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+      border-radius: 16px;
+    }
+
+    .level-screen h2 {
+      color: white;
+      font-size: 26px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.25);
+      margin-bottom: 12px;
+    }
+
+    .continue-btn {
+      margin-top: 12px;
+      padding: 10px 20px;
+      background: white;
+      border: 2px solid #42a5f5;
+      border-radius: 12px;
+      font-size: 18px;
+      cursor: pointer;
+      color: #1e88e5;
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="game-container">
+
+    <div class="header">
+      <div class="fuel">Топливо: <span id="fuel">100</span>%</div>
+      <div class="task-counter">Задача: <span id="taskIndex">1</span> / <span id="taskTotal">4</span></div>
+    </div>
+
+    <div class="track">
+      <div id="hero">
+        <img src="https://raw.githubusercontent.com/larakrav25-pixel/flumik-game/main/ba9ca989-1775-4f89-96b9-6ab84b602465.png" height="70">
+      </div>
+      <div class="finish"></div>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-inner" id="progress"></div>
+    </div>
+
+    <div class="question" id="question"></div>
+    <div class="answers" id="answers"></div>
+    <div class="message" id="message"></div>
+
+    <div class="bottom-bar">
+      <span>Приключения кота Фьюмика</span>
+      <button class="restart-btn" id="restartBtn">Сначала</button>
+    </div>
+
+    <!-- 🌤️ Экран перехода -->
+    <div class="level-screen" id="levelScreen">
+      <h2 id="levelMessage"></h2>
+      <button class="continue-btn" id="continueBtn">Продолжить</button>
+    </div>
+
+  </div>
+
+  <!-- 🔊 Звуки -->
+  <audio id="correctSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7b8e0f3c8d.mp3?filename=bird-chirp-1-177906.mp3"></audio>
+  <audio id="wrongSound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_7f3a3c2e2a.mp3?filename=soft-hit-1-7051.mp3"></audio>
+
+  <script>
+    const URL_FANTIK = "https://raw.githubusercontent.com/larakrav25-pixel/flumik-game/main/ba9ca989-1775-4f89-96b9-6ab84b602465.png";
+    const URL_PYSHKIN = "https://raw.githubusercontent.com/larakrav25-pixel/-fiumik-game/main/9cc9e602-8bc5-428d-8ffc-92f643172457.png";
+
+    const levels = [
+      [
+        { q: "125 + 230 = ?", options: [355, 345, 365, 325], correct: 355 },
+        { q: "480 + 120 = ?", options: [600, 580, 620, 590], correct: 600 },
+        { q: "345 + 255 = ?", options: [600, 580, 590, 610], correct: 600 },
+        { q: "560 + 140 = ?", options: [700, 690, 710, 720], correct: 700 }
+      ],
+      [
+        { q: "402 - 178 = ?", options: [224, 214, 234, 244], correct: 224 },
+        { q: "350 - 125 = ?", options: [225, 235, 215, 245], correct: 225 },
+        { q: "600 - 289 = ?", options: [311, 321, 301, 331], correct: 311 },
+        { q: "540 - 260 = ?", options: [280, 260, 300, 320], correct: 280 }
+      ],
+      [
+        { q: "48 ÷ 6 = ?", options: [8, 6, 7, 9], correct: 8 },
+        { q: "63 ÷ 7 = ?", options: [9, 8, 7, 6], correct: 9 },
+        { q: "12 × 4 = ?", options: [48, 44, 52, 36], correct: 48 },
+        { q: "15 × 3 = ?", options: [45, 35, 40, 50], correct: 45 }
+      ],
+      [
+        { q: "324 ÷ 6 = ?", options: [54, 64, 44, 48], correct: 54 },
+        { q: "450 ÷ 9 = ?", options: [50, 40, 45, 55], correct: 50 },
+        { q: "125 × 4 = ?", options: [500, 450, 400, 550], correct: 500 },
+        { q: "240 × 3 = ?", options: [720, 620, 840, 600], correct: 720 }
+      ]
+    ];
 
     const phrasesCorrect = [
-        'Фьюмик мурлычет: курс верный!',
-        'Фантик радостно машет крыльями!',
-        'Пышкин не уронил кекс — чудо!',
-        'Экипаж доволен твоими расчётами!',
-        'Ты настоящий помощник пилота!'
+      `Фантик <img src="${URL_FANTIK}" height="22"> радостно чирикает!`,
+      `Фантик <img src="${URL_FANTIK}" height="22"> кричит: «Чирик! Молодец!»`,
+      `Фантик <img src="${URL_FANTIK}" height="22"> хлопает крылышками!`
     ];
 
     const phrasesWrong = [
-        'Фьюмик спокойно: ничего, пересчитаем.',
-        'Фантик шепчет: кажется, тут ошибка…',
-        'Пышкин роняет кекс: ой… это я?',
-        'Самолёт слегка тряхнуло, но всё под контролем.',
-        'Облака запутали, попробуем ещё раз!'
+      `Пышкин <img src="${URL_PYSHKIN}" height="26"> уронил кекс от неожиданности!`,
+      `Пышкин <img src="${URL_PYSHKIN}" height="26"> удивлён: «Ой, кажется, не то…»`,
+      `Пышкин <img src="${URL_PYSHKIN}" height="26"> говорит: «Попробуем ещё раз?»`
     ];
 
-    function updateUI() {
-        stepInfo.textContent = 'Задача: ' + (step + 1) + ' / ' + goal;
-        fuelInfo.textContent = 'Топливо: ' + fuel + '%';
-        fuelBar.style.width = fuel + '%';
+    let level = 0;
+    let task = 0;
+    let fuel = 100;
 
-        const maxShift = 220; // пикселей до финиша
-        const progress = step / goal;
-        hero.style.transform = 'translateX(' + (maxShift * progress) + 'px)';
+    const questionEl = document.getElementById("question");
+    const answersEl = document.getElementById("answers");
+    const messageEl = document.getElementById("message");
+    const fuelEl = document.getElementById("fuel");
+    const taskIndexEl = document.getElementById("taskIndex");
+    const taskTotalEl = document.getElementById("taskTotal");
+    const progressEl = document.getElementById("progress");
+    const heroEl = document.getElementById("hero");
+    const restartBtn = document.getElementById("restartBtn");
+
+    const levelScreen = document.getElementById("levelScreen");
+    const levelMessage = document.getElementById("levelMessage");
+    const continueBtn = document.getElementById("continueBtn");
+
+    const correctSound = document.getElementById("correctSound");
+    const wrongSound = document.getElementById("wrongSound");
+
+    taskTotalEl.textContent = levels[level].length;
+
+    function updateHeroPosition() {
+      const percent = (task / levels[level].length) * 100;
+      heroEl.style.left = 8 + (percent * 0.7) + "%";
+      progressEl.style.width = percent + "%";
+    }
+
+    function setFuel(value) {
+      fuel = Math.max(0, Math.min(100, value));
+      fuelEl.textContent = fuel;
     }
 
     function randomFrom(arr) {
-        return arr[Math.floor(Math.random() * arr.length)];
+      return arr[Math.floor(Math.random() * arr.length)];
     }
 
-    function makeQuestion() {
-        if (step >= goal) {
-            endGame();
-            return;
-        }
+    function renderTask() {
+      const t = levels[level][task];
+      questionEl.textContent = t.q;
+      taskIndexEl.textContent = task + 1;
+      answersEl.innerHTML = "";
+      messageEl.innerHTML = "";
 
-        phraseEl.textContent = '';
+      t.options.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.className = "answer-btn";
+        btn.textContent = opt;
+        btn.onclick = () => handleAnswer(opt, btn);
+        answersEl.appendChild(btn);
+      });
 
-        const isMult = Math.random() > 0.5;
-        if (isMult) {
-            const a = Math.floor(Math.random() * 8) + 2;
-            const b = Math.floor(Math.random() * 8) + 2;
-            correctValue = a * b;
-            questionEl.textContent = a + ' × ' + b + ' = ?';
-        } else {
-            const a = Math.floor(Math.random() * 400) + 50;
-            const b = Math.floor(Math.random() * 300) + 50;
-            correctValue = a + b;
-            questionEl.textContent = a + ' + ' + b + ' = ?';
-        }
-
-        let options = [correctValue];
-        while (options.length < 4) {
-            let fake = correctValue + (Math.floor(Math.random() * 20) - 10);
-            if (fake > 0 && !options.includes(fake)) {
-                options.push(fake);
-            }
-        }
-        options.sort(() => Math.random() - 0.5);
-
-        buttons.forEach((btn, i) => {
-            const val = options[i];
-            btn.textContent = val;
-            btn.onclick = () => checkAnswer(val);
-        });
-
-        updateUI();
+      updateHeroPosition();
     }
 
-    function checkAnswer(val) {
-        if (val === correctValue) {
-            step++;
-            fuel = Math.min(100, fuel + 10);
-            phraseEl.textContent = randomFrom(phrasesCorrect);
-            makeQuestion();
-        } else {
-            fuel -= 25;
-            phraseEl.textContent = randomFrom(phrasesWrong);
-            if (fuel <= 0) {
-                fuel = 0;
-                gameOver();
-                return;
-            }
-            updateUI();
-        }
+    function handleAnswer(answer, btn) {
+      const t = levels[level][task];
+      const buttons = Array.from(document.querySelectorAll(".answer-btn"));
+      buttons.forEach(b => b.disabled = true);
+
+      if (answer === t.correct) {
+        btn.classList.add("correct");
+        messageEl.innerHTML = randomFrom(phrasesCorrect);
+
+        correctSound.currentTime = 0;
+        correctSound.play();
+
+        heroEl.classList.add("jumping");
+        setTimeout(() => heroEl.classList.remove("jumping"), 500);
+
+        setFuel(fuel + 5);
+        task++;
+
+        setTimeout(() => {
+          if (task < levels[level].length) {
+            renderTask();
+          } else {
+            showLevelScreen();
+          }
+        }, 700);
+
+      } else {
+        btn.classList.add("wrong");
+        messageEl.innerHTML = randomFrom(phrasesWrong);
+
+        wrongSound.currentTime = 0;
+        wrongSound.play();
+
+        setFuel(fuel - 10);
+
+        setTimeout(() => {
+          buttons.forEach(b => {
+            b.disabled = false;
+            b.classList.remove("wrong");
+          });
+          messageEl.innerHTML = "";
+        }, 800);
+      }
     }
 
-    function gameOver() {
-        document.getElementById('game-box').innerHTML = `
-            <h2>🛬 Запасной аэродром</h2>
-            <p>Топливо закончилось, но Фьюмик посадил самолёт мягко и спокойно.</p>
-            <p>Фантик машет крыльями: "Давай попробуем ещё раз!"</p>
-            <button class="answer" onclick="restartGame()">🔁 Новый полёт</button>
-        `;
+    function showLevelScreen() {
+      setFuel(fuel + 30);
+
+      if (level < 3) {
+        levelMessage.textContent = `Фантик радостно чирикает: уровень ${level + 1} пройден! Топливо пополнено на 30% — можно лететь дальше!`;
+      } else {
+        levelMessage.textContent = `Поздравляем! Все уровни пройдены! Фьюмик и Фантик гордятся тобой!`;
+      }
+
+      levelScreen.style.display = "flex";
     }
 
-    function endGame() {
-        const result = {
-            type: 'flight_result',
-            tasks: goal,
-            fuel: fuel
-        };
+    continueBtn.onclick = () => {
+      levelScreen.style.display = "none";
 
-        document.getElementById('game-box').innerHTML = `
-            <h2>🎉 Посадка удалась!</h2>
-            <p>Ты помог Фьюмику, Фантику и Пышкину успешно завершить рейс.</p>
-            <p>Пышкин вручает тебе кекс-медаль за отвагу и смекалку!</p>
-            <button class="answer" onclick="restartGame()">🔁 Ещё один полёт</button>
-        `;
-
-        if (tg) {
-            tg.sendData(JSON.stringify(result));
-        }
-    }
+      if (level < 3) {
+        level++;
+        task = 0;
+        taskTotalEl.textContent = levels[level].length;
+        renderTask();
+      } else {
+        questionEl.textContent = "Финиш!";
+        answersEl.innerHTML = "";
+        messageEl.innerHTML = "Ты прошёл все уровни!";
+      }
+    };
 
     function restartGame() {
-        location.reload();
+      level = 0;
+      task = 0;
+      setFuel(100);
+      taskTotalEl.textContent = levels[level].length;
+      renderTask();
     }
 
-    function closeApp() {
-        if (tg) {
-            tg.close();
-        } else {
-            // если открыто просто в браузере
-            alert('В Telegram WebApp окно закроется, а здесь можно просто закрыть вкладку.');
-        }
-    }
+    restartBtn.addEventListener("click", restartGame);
 
-    // старт
-    makeQuestion();
-</script>
+    renderTask();
+  </script>
 </body>
 </html>
