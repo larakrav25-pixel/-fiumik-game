@@ -71,7 +71,6 @@
   </div>
 
 <script>
-// 30 задач без ответов
 const tasks = [
   "3 + ? = 5", "? + 1 = 4", "6 - ? = 4", "? - 2 = 3", "8 - ? = 5", "? + 2 = 7",
   "10 + ? = 13", "? + 5 = 14", "17 - ? = 10", "? - 4 = 9", "12 + ? = 18", "? - 7 = 5",
@@ -80,7 +79,6 @@ const tasks = [
   "54 - ? = 29", "? + 18 = 73", "92 - ? = 47", "? - 27 = 40", "63 + ? = 99", "? - 34 = 12"
 ];
 
-// Функция вычисления правильного ответа
 function solve(task) {
   let t = task.replace(/\s/g, "");
   let [left, right] = t.split("=");
@@ -104,7 +102,6 @@ function solve(task) {
   }
 }
 
-// HTML элементы
 const questionBox = document.getElementById("question");
 const buttons = document.getElementById("answers");
 const resultBox = document.getElementById("result");
@@ -113,14 +110,12 @@ const rewardBox = document.getElementById("reward");
 let index = 0;
 let correctStreak = 0;
 
-// Показ задачи
 function showTask() {
   let task = tasks[index];
   let correct = solve(task);
 
   questionBox.innerText = task;
 
-  // Генерируем 3 варианта
   let options = [correct];
   while (options.length < 3) {
     let fake = correct + Math.floor(Math.random() * 10 - 5);
@@ -138,7 +133,6 @@ function showTask() {
   });
 }
 
-// Проверка ответа
 function check(answer, correct) {
   if (answer === correct) {
     resultBox.innerText = "👍";
@@ -171,3 +165,4 @@ showTask();
 
 </body>
 </html>
+
