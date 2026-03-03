@@ -96,6 +96,18 @@
     margin-top: 10px;
     color: #ff9800;
   }
+
+  #restart {
+    display: none;
+    margin-top: 20px;
+    font-size: 26px;
+    padding: 12px 20px;
+    border-radius: 12px;
+    border: none;
+    background: #4caf50;
+    color: white;
+    cursor: pointer;
+  }
 </style>
 </head>
 
@@ -128,6 +140,7 @@
     <div id="answers"></div>
     <div id="result"></div>
     <div id="reward"></div>
+    <button id="restart">Играть ещё</button>
   </div>
 
 </div>
@@ -187,6 +200,7 @@ const answersBox = document.getElementById("answers");
 const resultBox = document.getElementById("result");
 const rewardBox = document.getElementById("reward");
 const finish = document.getElementById("finish");
+const restartBtn = document.getElementById("restart");
 
 let index = 0;
 
@@ -235,6 +249,7 @@ function check(answer, correct) {
       rewardBox.innerText = "🧁 Пышкин дарит кексик!";
       answersBox.innerHTML = "";
       questionBox.innerText = "Рейс выполнён!";
+      restartBtn.style.display = "inline-block";
     }
 
   } else {
@@ -243,6 +258,23 @@ function check(answer, correct) {
     setTimeout(() => cat.style.transform = "translateY(0)", 300);
   }
 }
+
+restartBtn.onclick = () => {
+  index = 0;
+
+  for (let i = 0; i < tasks.length; i++) {
+    tasks[i] = generateTask();
+  }
+
+  placeCat(0);
+
+  finish.style.display = "none";
+  rewardBox.innerText = "";
+  resultBox.innerText = "";
+  restartBtn.style.display = "none";
+
+  showTask();
+};
 
 showTask();
 </script>
