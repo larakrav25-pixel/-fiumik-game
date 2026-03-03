@@ -1,1 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Рейс Фьюмика — Логическая игра</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(#e3f2fd, #bbdefb);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      text-align: center;
+    }
+
+    #game-box {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 420px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+
+    #question {
+      font-size: 32px;
+      margin-bottom: 20px;
+      font-weight: bold;
+      color: #0d47a1;
+    }
+
+    .answer-btn {
+      font-size: 26px;
+      padding: 14px 24px;
+      margin: 10px;
+      border-radius: 12px;
+      border: none;
+      background: #90caf9;
+      cursor: pointer;
+      width: 80%;
+    }
+
+    .answer-btn:hover {
+      background: #64b5f6;
+    }
+
+    #result {
+      font-size: 40px;
+      margin-top: 20px;
+    }
+
+    #reward {
+      font-size: 40px;
+      margin-top: 10px;
+      color: #ff9800;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="game-box">
+    <div id="question"></div>
+    <div id="answers"></div>
+    <div id="result"></div>
+    <div id="reward"></div>
+  </div>
+
+<script>
+// 30 задач без ответов
+const tasks = [
+  "3 + ? = 5", "? + 1 = 4", "6 - ? = 4", "? - 2 = 3", "8 - ? = 5", "? + 2 = 7",
+  "10 + ? = 13", "? + 5 = 14", "17 - ? = 10", "? - 4 = 9", "12 + ? = 18", "? - 7 = 5",
+  "21 - ? = 15", "? +
