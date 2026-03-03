@@ -75,4 +75,100 @@
 const tasks = [
   "3 + ? = 5", "? + 1 = 4", "6 - ? = 4", "? - 2 = 3", "8 - ? = 5", "? + 2 = 7",
   "10 + ? = 13", "? + 5 = 14", "17 - ? = 10", "? - 4 = 9", "12 + ? = 18", "? - 7 = 5",
-  "21 - ? = 15", "? +
+  "21 - ? = 15", "? + 7 = 24", "28 - ? = 21", "? - 9 = 11", "14 + ? = 29", "? - 6 = 18",
+  "34 - ? = 20", "? + 12 = 45", "47 - ? = 29", "? - 15 = 22", "26 + ? = 50", "? - 8 = 31",
+  "54 - ? = 29", "? + 18 = 73", "92 - ? = 47", "? - 27 = 40", "63 + ? = 99", "? - 34 = 12"
+];
+
+// Функция вычисления правильного ответа
+function solve(task) {
+  let t = task.replace(/\s/g, "");
+  let [left, right] = t.split("=");
+  right = Number(right);
+
+  if (left.includes("+?")) {
+    let a = Number(left.split("+")[0]);
+    return right - a;
+  }
+  if (left.includes("?+")) {
+    let b = Number(left.split("+")[1]);
+    return right - b;
+  }
+  if (left.includes("-?")) {
+    let a = Number(left.split("-")[0]);
+    return a - right;
+  }
+  if (left.includes("?-")) {
+    let b = Number(left.split("-")[1]);
+    return right + b;
+  }
+}
+
+// HTML элементы
+const questionBox = document.getElementById("question");
+const buttons = document.getElementById("answers");
+const resultBox = document.getElementById("result");
+const rewardBox = document.getElementById("reward");
+
+let index = 0;
+let correctStreak = 0;
+
+// Показ задачи
+function showTask() {
+  let task = tasks[index];
+  let correct = solve(task);
+
+  questionBox.innerText = task;
+
+  // Генерируем 3 варианта
+  let options = [correct];
+  while (options.length < 3) {
+    let fake = correct + Math.floor(Math.random() * 10 - 5);
+    if (fake !== correct && fake > 0) options.push(fake);
+  }
+  options.sort(() => Math.random() - 0.5);
+
+  buttons.innerHTML = "";
+  options.forEach(num => {
+    let btn = document.createElement("button");
+    btn.className = "answer-btn";
+    btn.innerText = num;
+    btn.onclick = () => check(num, correct);
+    buttons.appendChild(btn);
+  });
+}
+
+// Проверка ответа
+function check(answer, correct) {
+  if (answer === correct) {
+    resultBox.innerText = "👍";
+    correctStreak++;
+
+    if (correctStreak === 5) {
+      rewardBox.innerText = "🧁 Пышкин дарит кексик!";
+      correctStreak = 0;
+    }
+  } else {
+    resultBox.innerText = "🙈";
+    correctStreak = 0;
+  }
+
+  index++;
+  if (index < tasks.length) {
+    setTimeout(() => {
+      resultBox.innerText = "";
+      rewardBox.innerText = "";
+      showTask();
+    }, 900);
+  } else {
+    questionBox.innerText = "Рейс завершён!";
+    buttons.innerHTML = "";
+  }
+}
+
+showTask();
+</script>
+
+</body>
+</html>
+
