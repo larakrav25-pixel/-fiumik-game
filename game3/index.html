@@ -1,1 +1,349 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Цифровой маджонг Фьюмика</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(#b3e5fc, #e1f5fe);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
 
+    h1 {
+      margin-top: 20px;
+      color: #0d47a1;
+      text-align: center;
+    }
+
+    #subtitle {
+      margin-bottom: 10px;
+      color: #1565c0;
+      text-align: center;
+      font-size: 16px;
+    }
+
+    #game {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(5, 80px);
+      grid-auto-rows: 80px;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .tile {
+      position: relative;
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      color: #0d47a1;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.4s;
+    }
+
+    .tile.selected {
+      box-shadow: 0 0 0 3px #ffb300;
+      transform: translateY(-4px);
+    }
+
+    .tile.matched {
+      opacity: 0;
+      transform: translateY(-40px) scale(0.7);
+      pointer-events: none;
+    }
+
+    .tile.special {
+      font-size: 30px;
+    }
+
+    #info {
+      margin-top: 10px;
+      font-size: 18px;
+      color: #0d47a1;
+      text-align: center;
+    }
+
+    #message {
+      margin-top: 10px;
+      font-size: 20px;
+      text-align: center;
+    }
+
+    #controls {
+      margin-top: 15px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    button {
+      font-size: 16px;
+      padding: 8px 16px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      background: #42a5f5;
+      color: white;
+    }
+
+    button:hover {
+      background: #1e88e5;
+    }
+
+    #score {
+      font-weight: bold;
+      color: #e65100;
+    }
+
+    @media (max-width: 480px) {
+      #game {
+        grid-template-columns: repeat(4, 70px);
+        grid-auto-rows: 70px;
+      }
+      .tile {
+        font-size: 26px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Цифровой маджонг Фьюмика</h1>
+<div id="subtitle">Найди две одинаковые цифры. Нажми на них — и они улетят!</div>
+
+<div id="game"></div>
+
+<div id="info">
+  Пары найдено: <span id="pairs">0</span> |
+  Очки: <span id="score">0</span>
+</div>
+
+<div id="message"></div>
+
+<div id="controls">
+  <button id="restart">Играть ещё</button>
+  <button id="easy">Лёгкий</button>
+  <button id="medium">Средний</button>
+  <button id="hard">Сложный</button>
+</div>
+
+<script>
+  const gameEl = document.getElementById("game");
+  const pairsEl = document.getElementById("pairs");
+  const scoreEl = document.getElementById("score");
+  const messageEl = document.getElementById("message");
+
+  const restartBtn = document.getElementById("restart");
+  const easyBtn = document.getElementById("easy");
+  const mediumBtn = document.getElementById("medium");
+  const hardBtn = document.getElementById("hard");
+
+  let tiles = [];
+  let firstSelected = null;
+  let lock = false;
+  let pairsFound = 0;
+  let score = 0;
+  let currentLevel = "medium";
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function createLevel(level) {
+    let pairsCount;
+    if (level === "easy") pairsCount = 6;
+    else if (level === "hard") pairsCount = 10;
+    else pairsCount = 8;
+
+    const digits = [];
+    for (let i = 0; i < pairsCount; i++) {
+      const d = Math.floor(Math.random() * 10);
+      digits.push(d, d);
+    }
+
+    const specials = [];
+    if (Math.random() < 0.7) specials.push({ type: "sparrow", icon: "🐦" });
+    if (Math.random() < 0.7) specials.push({ type: "cat", icon: "😺" });
+    if (Math.random() < 0.7) specials.push({ type: "cake", icon: "🧁" });
+
+    const baseTiles = digits.map(d => ({
+      kind: "number",
+      value: d
+    }));
+
+    specials.forEach(s => {
+      baseTiles.push({
+        kind: "special",
+        type: s.type,
+        icon: s.icon
+      });
+    });
+
+    shuffle(baseTiles);
+    return baseTiles;
+  }
+
+  function render() {
+    gameEl.innerHTML = "";
+    tiles.forEach((tile, index) => {
+      const div = document.createElement("div");
+      div.className = "tile";
+      div.dataset.index = index;
+
+      if (tile.kind === "number") {
+        div.textContent = tile.value;
+      } else {
+        div.textContent = tile.icon;
+        div.classList.add("special");
+      }
+
+      div.addEventListener("click", () => onTileClick(index));
+      gameEl.appendChild(div);
+    });
+  }
+
+  function updateInfo() {
+    pairsEl.textContent = pairsFound;
+    scoreEl.textContent = score;
+  }
+
+  function onTileClick(index) {
+    if (lock) return;
+    const tile = tiles[index];
+    if (!tile || tile.matched) return;
+
+    const tileEls = document.querySelectorAll(".tile");
+    const el = tileEls[index];
+
+    if (tile.kind === "special") {
+      handleSpecial(tile, el);
+      return;
+    }
+
+    if (firstSelected === index) return;
+
+    el.classList.add("selected");
+
+    if (firstSelected === null) {
+      firstSelected = index;
+    } else {
+      const firstTile = tiles[firstSelected];
+      const firstEl = tileEls[firstSelected];
+
+      if (firstTile.value === tile.value) {
+        lock = true;
+        setTimeout(() => {
+          firstEl.classList.add("matched");
+          el.classList.add("matched");
+          firstTile.matched = true;
+          tile.matched = true;
+          firstSelected = null;
+          lock = false;
+          pairsFound++;
+          score += 10;
+          messageEl.textContent = "Отлично! Пара найдена 👍";
+          checkWin();
+          updateInfo();
+        }, 300);
+      } else {
+        lock = true;
+        setTimeout(() => {
+          firstEl.classList.remove("selected");
+          el.classList.remove("selected");
+          firstSelected = null;
+          lock = false;
+          messageEl.textContent = "Не совпало 🙈 Попробуй ещё!";
+          score = Math.max(0, score - 1);
+          updateInfo();
+        }, 400);
+      }
+    }
+  }
+
+  function handleSpecial(tile, el) {
+    if (tile.type === "sparrow") {
+      messageEl.textContent = "Воробей чирикнул и улетел 🐦";
+      flyAway(el);
+      score += 2;
+    } else if (tile.type === "cat") {
+      messageEl.textContent = "Фьюмик доволен! 😺";
+      bounce(el);
+      score += 3;
+    } else if (tile.type === "cake") {
+      messageEl.textContent = "Кексик! Дополнительные очки 🧁";
+      pulse(el);
+      score += 5;
+    }
+    updateInfo();
+  }
+
+  function flyAway(el) {
+    el.style.transition = "transform 0.6s, opacity 0.6s";
+    el.style.transform = "translateY(-60px)";
+    el.style.opacity = "0";
+    setTimeout(() => {
+      el.style.visibility = "hidden";
+    }, 600);
+  }
+
+  function bounce(el) {
+    el.style.transition = "transform 0.2s";
+    el.style.transform = "translateY(-10px)";
+    setTimeout(() => {
+      el.style.transform = "translateY(0)";
+    }, 200);
+  }
+
+  function pulse(el) {
+    el.style.transition = "transform 0.2s";
+    el.style.transform = "scale(1.2)";
+    setTimeout(() => {
+      el.style.transform = "scale(1)";
+    }, 200);
+  }
+
+  function checkWin() {
+    const remainingNumbers = tiles.filter(t => t.kind === "number" && !t.matched);
+    if (remainingNumbers.length === 0) {
+      messageEl.textContent = "Поле очищено! Фьюмик гордится тобой 🧁😺";
+    }
+  }
+
+  function startGame(level = currentLevel) {
+    currentLevel = level;
+    tiles = createLevel(level);
+    pairsFound = 0;
+    score = 0;
+    firstSelected = null;
+    lock = false;
+    messageEl.textContent = "";
+    updateInfo();
+    render();
+  }
+
+  restartBtn.addEventListener("click", () => startGame(currentLevel));
+  easyBtn.addEventListener("click", () => startGame("easy"));
+  mediumBtn.addEventListener("click", () => startGame("medium"));
+  hardBtn.addEventListener("click", () => startGame("hard"));
+
+  startGame("medium");
+</script>
+
+</body>
+</html>
